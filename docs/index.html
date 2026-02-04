@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tsk - Fast, minimal terminal todo manager</title>
+  <meta name="description" content="A fast, minimal terminal todo manager written in Rust. Manage tasks with priorities, projects, tags, and natural time formats.">
+  <meta name="theme-color" content="#0d1117">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="tsk - Terminal Todo Manager">
+  <meta property="og:description" content="A fast, minimal terminal todo manager written in Rust.">
+  <meta property="og:type" content="website">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --accent-green: #3fb950;
+      --accent-green-bright: #56d364;
+      --accent-red: #f85149;
+      --accent-yellow: #d29922;
+      --accent-blue: #58a6ff;
+      --accent-cyan: #39c5cf;
+      --accent-magenta: #bc8cff;
+      --accent-orange: #f0883e;
+      --glow-green: 0 0 20px rgba(63, 185, 80, 0.4);
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+      --space-3xl: 4rem;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Subtle scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.03) 0px,
+        rgba(0, 0, 0, 0.03) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      z-index: 1000;
+    }
+
+    a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: var(--accent-cyan);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 var(--space-lg);
+    }
+
+    /* Header */
+    header {
+      padding: var(--space-lg) 0;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(13, 17, 23, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+    }
+
+    .logo-icon {
+      color: var(--accent-green);
+    }
+
+    nav {
+      display: flex;
+      gap: var(--space-lg);
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      transition: color 0.2s ease;
+    }
+
+    nav a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: var(--space-3xl) 0;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      margin-bottom: var(--space-md);
+      line-height: 1.2;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .hero h1 .highlight {
+      color: var(--accent-green);
+      position: relative;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero .tagline {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-xl);
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease 0.1s forwards;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease 0.2s forwards;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-lg);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--accent-green);
+      color: var(--bg-primary);
+      border-color: var(--accent-green);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-green-bright);
+      box-shadow: var(--glow-green);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-secondary);
+      transform: translateY(-2px);
+    }
+
+    /* Terminal Demo */
+    .terminal-section {
+      padding: var(--space-2xl) 0;
+    }
+
+    .terminal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    .terminal:hover {
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--accent-green);
+      transform: translateY(-2px);
+    }
+
+    .terminal-header {
+      background: var(--bg-tertiary);
+      padding: var(--space-sm) var(--space-md);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+    }
+
+    .terminal:hover .terminal-dot {
+      transform: scale(1.1);
+    }
+
+    .terminal-dot.red { background: var(--accent-red); }
+    .terminal-dot.yellow { background: var(--accent-yellow); }
+    .terminal-dot.green { background: var(--accent-green); }
+
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .terminal-body {
+      padding: var(--space-lg);
+      min-height: 300px;
+      font-size: 0.875rem;
+      position: relative;
+    }
+
+    .terminal-line {
+      margin-bottom: var(--space-xs);
+      opacity: 0;
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    .terminal-line.visible {
+      opacity: 1;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .prompt {
+      color: var(--accent-green);
+    }
+
+    .command {
+      color: var(--text-primary);
+    }
+
+    .output {
+      color: var(--text-secondary);
+      padding-left: 0;
+    }
+
+    .output .id {
+      color: var(--text-muted);
+      display: inline-block;
+      min-width: 2ch;
+    }
+
+    .output .priority-high { color: var(--accent-red); }
+    .output .priority-med { color: var(--accent-yellow); }
+    .output .priority-low { color: var(--accent-blue); }
+    .output .tag { color: var(--accent-cyan); }
+    .output .project { color: var(--accent-magenta); }
+    .output .time { color: var(--accent-orange); }
+    .output .done { color: var(--accent-green); }
+    .output .task-text { color: var(--text-primary); }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1.2em;
+      background: var(--accent-green);
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .terminal-hint {
+      position: absolute;
+      bottom: var(--space-sm);
+      right: var(--space-md);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .terminal:hover .terminal-hint {
+      opacity: 0.6;
+    }
+
+    /* Scroll animations */
+    .fade-in-section {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-in-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Features Section */
+    .features {
+      padding: var(--space-3xl) 0;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: var(--space-xl);
+      text-align: center;
+    }
+
+    .section-title::before {
+      content: '# ';
+      color: var(--accent-green);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    .feature-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: var(--space-lg);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent-green);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-card:hover::after {
+      transform: scaleX(1);
+    }
+
+    .feature-icon {
+      font-size: 1.25rem;
+      margin-bottom: var(--space-sm);
+    }
+
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: var(--space-sm);
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .feature-card code {
+      background: var(--bg-tertiary);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+      font-size: 0.8em;
+    }
+
+    /* Install Section */
+    .install {
+      padding: var(--space-3xl) 0;
+    }
+
+    .install-options {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+
+    .install-option {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: var(--space-lg);
+      transition: border-color 0.2s ease;
+    }
+
+    .install-option:hover {
+      border-color: var(--accent-green);
+    }
+
+    .install-option h3 {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-md);
+    }
+
+    .code-block {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: var(--space-md);
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .code-block code {
+      font-size: 0.875rem;
+      color: var(--text-primary);
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: var(--space-sm);
+      right: var(--space-sm);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--border);
+      color: var(--text-primary);
+    }
+
+    .copy-btn.copied {
+      background: var(--accent-green);
+      color: var(--bg-primary);
+      border-color: var(--accent-green);
+    }
+
+    /* Examples Section */
+    .examples {
+      padding: var(--space-3xl) 0;
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-lg);
+    }
+
+    @media (max-width: 900px) {
+      .examples-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .example-group {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .example-group:hover {
+      border-color: var(--accent-green);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .example-group h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: var(--space-md) var(--space-lg);
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .example-group h3 .icon {
+      font-size: 1rem;
+    }
+
+    .example-list {
+      padding: var(--space-md);
+    }
+
+    .example-item {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: var(--space-sm);
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    .example-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .example-item:hover {
+      border-color: var(--accent-cyan);
+    }
+
+    .example-item:hover .example-copy {
+      opacity: 1;
+    }
+
+    .example-cmd {
+      font-size: 0.8rem;
+      padding: var(--space-sm) var(--space-md);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .example-cmd .prompt {
+      color: var(--accent-green);
+      user-select: none;
+    }
+
+    .example-cmd .cmd-text {
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    .example-cmd .cmd-text .cmd-name {
+      color: var(--accent-cyan);
+    }
+
+    .example-cmd .cmd-text .cmd-arg {
+      color: var(--accent-yellow);
+    }
+
+    .example-cmd .cmd-text .cmd-flag {
+      color: var(--accent-magenta);
+    }
+
+    .example-cmd .cmd-text .cmd-tag {
+      color: var(--accent-cyan);
+    }
+
+    .example-cmd .cmd-text .cmd-project {
+      color: var(--accent-magenta);
+    }
+
+    .example-copy {
+      opacity: 0;
+      background: var(--bg-tertiary);
+      border: none;
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.65rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .example-copy:hover {
+      background: var(--accent-green);
+      color: var(--bg-primary);
+    }
+
+    .example-copy.copied {
+      background: var(--accent-green);
+      color: var(--bg-primary);
+    }
+
+    .example-desc {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: var(--space-xs) var(--space-md) var(--space-sm);
+      border-top: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Footer */
+    footer {
+      padding: var(--space-2xl) 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-content {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      nav {
+        display: none;
+      }
+
+      .terminal-body {
+        font-size: 0.75rem;
+        padding: var(--space-md);
+      }
+
+      .hero-cta {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .btn {
+        width: 100%;
+        max-width: 250px;
+        justify-content: center;
+      }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-green);
+    }
+
+    /* Selection */
+    ::selection {
+      background: var(--accent-green);
+      color: var(--bg-primary);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-content">
+      <div class="logo">
+        <span class="logo-icon">></span>
+        <span>tsk</span>
+      </div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="#examples">Examples</a>
+        <a href="https://github.com/vivekmalapaka-devops/tsk" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Tasks at the <span class="highlight">speed of thought</span></h1>
+        <p class="tagline">A fast, minimal terminal todo manager written in Rust. No bloat. No friction. Just tsk.</p>
+        <div class="hero-cta">
+          <a href="#install" class="btn btn-primary">
+            <span>Get Started</span>
+          </a>
+          <a href="https://github.com/vivekmalapaka-devops/tsk" class="btn btn-secondary" target="_blank" rel="noopener">
+            <span>View on GitHub</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="terminal-section">
+      <div class="container">
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <div class="terminal-title">~/projects — tsk</div>
+          </div>
+          <div class="terminal-body" id="terminal">
+            <!-- Terminal content populated by JS -->
+          </div>
+          <span class="terminal-hint">click to replay</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="features fade-in-section" id="features">
+      <div class="container">
+        <h2 class="section-title">Features</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Blazing Fast</h3>
+            <p>Written in Rust. Starts instantly. Zero lag between thought and action.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3>Priority Levels</h3>
+            <p>Mark urgency with <code>-p 1</code> (!!!), <code>-p 2</code> (!!), or <code>-p 3</code> (!)</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📁</div>
+            <h3>Projects & Tags</h3>
+            <p>Organize with <code>@project</code> and <code>+tag</code> syntax. Filter and focus.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🕐</div>
+            <h3>Natural Time</h3>
+            <p>Due dates like <code>tomorrow</code>, <code>friday 5pm</code>, <code>in 2 hours</code></p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📅</div>
+            <h3>Smart Filtering</h3>
+            <p>View tasks due <code>today</code>, this <code>week</code>, or filter by project and tag.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">💾</div>
+            <h3>Simple Storage</h3>
+            <p>Tasks stored in <code>~/.tsk/todos.json</code>. Portable. Inspectable. Yours.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="install fade-in-section" id="install">
+      <div class="container">
+        <h2 class="section-title">Install</h2>
+        <div class="install-options">
+          <div class="install-option">
+            <h3>From source (requires Rust)</h3>
+            <div class="code-block">
+              <button class="copy-btn" data-copy="cargo install --path .">Copy</button>
+              <code>cargo install --path .</code>
+            </div>
+          </div>
+          <div class="install-option">
+            <h3>Or build and copy binary</h3>
+            <div class="code-block">
+              <button class="copy-btn" data-copy="cargo build --release && cp target/release/tsk ~/.local/bin/">Copy</button>
+              <code>cargo build --release && cp target/release/tsk ~/.local/bin/</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="examples fade-in-section" id="examples">
+      <div class="container">
+        <h2 class="section-title">Examples</h2>
+        <div class="examples-grid">
+          <div class="example-group">
+            <h3><span class="icon">✚</span> Adding tasks</h3>
+            <div class="example-list">
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk add &quot;Buy groceries&quot;">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk add</span> <span class="cmd-arg">"Buy groceries"</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">Add a simple task</div>
+              </div>
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk add &quot;Call client&quot; -p 1 -t 11am @work +urgent">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk add</span> <span class="cmd-arg">"Call client"</span> <span class="cmd-flag">-p 1 -t 11am</span> <span class="cmd-project">@work</span> <span class="cmd-tag">+urgent</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">Priority, deadline, project & tag</div>
+              </div>
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk a &quot;Review PR&quot; -t tomorrow @code">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk a</span> <span class="cmd-arg">"Review PR"</span> <span class="cmd-flag">-t tomorrow</span> <span class="cmd-project">@code</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">Short alias with natural time</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-group">
+            <h3><span class="icon">☰</span> Viewing tasks</h3>
+            <div class="example-list">
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">List all open tasks by priority</div>
+              </div>
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk today">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk today</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">Show tasks due today</div>
+              </div>
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk -P work --by time">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk</span> <span class="cmd-flag">-P work --by time</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">Filter by project, sort by deadline</div>
+              </div>
+            </div>
+          </div>
+          <div class="example-group">
+            <h3><span class="icon">✓</span> Managing tasks</h3>
+            <div class="example-list">
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk done 1">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk done</span> <span class="cmd-arg">1</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">Mark task #1 as complete</div>
+              </div>
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk edit 2 -p 1 -t friday">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk edit</span> <span class="cmd-arg">2</span> <span class="cmd-flag">-p 1 -t friday</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">Update priority and deadline</div>
+              </div>
+              <div class="example-item">
+                <div class="example-cmd" data-cmd="tsk stats">
+                  <span class="prompt">❯</span>
+                  <span class="cmd-text"><span class="cmd-name">tsk stats</span></span>
+                  <button class="example-copy">copy</button>
+                </div>
+                <div class="example-desc">View progress overview</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-links">
+        <a href="https://github.com/vivekmalapaka-devops/tsk" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/vivekmalapaka-devops/tsk/issues" target="_blank" rel="noopener">Issues</a>
+      </div>
+      <p>Built with Rust. MIT License.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Terminal animation
+    const terminalCommands = [
+      { type: 'command', text: 'tsk add "Review pull request" -p 1 @work +code' },
+      { type: 'output', text: '<span class="done">✓</span> Added task #1' },
+      { type: 'pause', duration: 400 },
+      { type: 'command', text: 'tsk add "Buy groceries" -t tomorrow @personal' },
+      { type: 'output', text: '<span class="done">✓</span> Added task #2' },
+      { type: 'pause', duration: 400 },
+      { type: 'command', text: 'tsk add "Fix login bug" -p 2 -t friday @work +urgent' },
+      { type: 'output', text: '<span class="done">✓</span> Added task #3' },
+      { type: 'pause', duration: 600 },
+      { type: 'command', text: 'tsk' },
+      { type: 'output', text: '' },
+      { type: 'output', text: '<span class="id">1</span> <span class="priority-high">!!!</span> <span class="task-text">Review pull request</span> <span class="project">@work</span> <span class="tag">+code</span>' },
+      { type: 'output', text: '<span class="id">3</span> <span class="priority-med">!!</span>  <span class="task-text">Fix login bug</span> <span class="time">fri</span> <span class="project">@work</span> <span class="tag">+urgent</span>' },
+      { type: 'output', text: '<span class="id">2</span>      <span class="task-text">Buy groceries</span> <span class="time">tomorrow</span> <span class="project">@personal</span>' },
+      { type: 'pause', duration: 800 },
+      { type: 'command', text: 'tsk done 1' },
+      { type: 'output', text: '<span class="done">✓</span> Completed: Review pull request' },
+      { type: 'pause', duration: 500 },
+      { type: 'command', text: 'tsk stats' },
+      { type: 'output', text: '' },
+      { type: 'output', text: '  <span class="done">Done:</span>  1  <span class="text-secondary">████░░░░░░</span>  33%' },
+      { type: 'output', text: '  <span class="text-secondary">Open:</span>  2' },
+      { type: 'cursor', text: '' }
+    ];
+
+    const terminal = document.getElementById('terminal');
+    let isAnimating = false;
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function typeText(element, text, speed = 30) {
+      for (let i = 0; i < text.length; i++) {
+        element.textContent += text[i];
+        await sleep(speed + Math.random() * 20);
+      }
+    }
+
+    async function runTerminalAnimation() {
+      if (isAnimating) return;
+      isAnimating = true;
+      terminal.innerHTML = '';
+
+      for (const cmd of terminalCommands) {
+        if (cmd.type === 'pause') {
+          await sleep(cmd.duration);
+          continue;
+        }
+
+        const line = document.createElement('div');
+        line.className = 'terminal-line';
+
+        if (cmd.type === 'command') {
+          line.innerHTML = '<span class="prompt">❯</span> <span class="command"></span>';
+          terminal.appendChild(line);
+          line.classList.add('visible');
+          await typeText(line.querySelector('.command'), cmd.text, 25);
+          await sleep(200);
+        } else if (cmd.type === 'output') {
+          line.className = 'terminal-line output';
+          line.innerHTML = cmd.text;
+          terminal.appendChild(line);
+          await sleep(50);
+          line.classList.add('visible');
+        } else if (cmd.type === 'cursor') {
+          line.innerHTML = '<span class="prompt">❯</span> <span class="cursor"></span>';
+          terminal.appendChild(line);
+          line.classList.add('visible');
+        }
+      }
+      isAnimating = false;
+    }
+
+    // Start animation when terminal is in view
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          runTerminalAnimation();
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    observer.observe(document.querySelector('.terminal'));
+
+    // Copy button functionality
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const text = btn.dataset.copy;
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+        }
+      });
+    });
+
+    // Replay terminal on click
+    document.querySelector('.terminal').addEventListener('click', () => {
+      runTerminalAnimation();
+    });
+
+    // Scroll animations for sections
+    const fadeInSections = document.querySelectorAll('.fade-in-section');
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    fadeInSections.forEach(section => sectionObserver.observe(section));
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Example copy buttons
+    document.querySelectorAll('.example-copy').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const cmd = btn.closest('.example-cmd').dataset.cmd;
+        try {
+          await navigator.clipboard.writeText(cmd);
+          btn.textContent = 'copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'copy';
+            btn.classList.remove('copied');
+          }, 1500);
+        } catch (err) {
+          console.error('Failed to copy:', err);
+        }
+      });
+    });
+
+    // Click on example-cmd to copy
+    document.querySelectorAll('.example-cmd').forEach(cmd => {
+      cmd.addEventListener('click', (e) => {
+        if (e.target.classList.contains('example-copy')) return;
+        const btn = cmd.querySelector('.example-copy');
+        btn.click();
+      });
+    });
+  </script>
+</body>
+</html>
