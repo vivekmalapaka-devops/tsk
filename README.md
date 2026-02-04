@@ -1,6 +1,6 @@
 # tsk
 
-A fast, minimal terminal todo manager.
+A fast, minimal terminal task manager.
 
 ## Install
 
