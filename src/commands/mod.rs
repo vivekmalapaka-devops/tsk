@@ -5,3 +5,4 @@ pub mod done;
 pub mod edit;
 pub mod list;
 pub mod stats;
+pub mod today;

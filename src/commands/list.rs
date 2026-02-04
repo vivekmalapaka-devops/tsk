@@ -1,13 +1,12 @@
 use crate::cli::SortBy;
 use crate::display::{format_todo, print_empty_message, DisplayConfig};
 use crate::store::Store;
-use crate::time::{is_due_this_week, is_due_today};
+use crate::time::is_due_this_week;
 use crate::todo::Todo;
 
 pub enum Filter {
     Open,
     All,
-    Today,
     Week,
     Overdue,
 }
@@ -22,10 +21,6 @@ pub fn run(
     let mut todos: Vec<&Todo> = match filter {
         Filter::Open => store.open_todos().collect(),
         Filter::All => store.todos.iter().collect(),
-        Filter::Today => store
-            .open_todos()
-            .filter(|t| t.deadline.map(is_due_today).unwrap_or(false))
-            .collect(),
         Filter::Week => store
             .open_todos()
             .filter(|t| t.deadline.map(is_due_this_week).unwrap_or(false))

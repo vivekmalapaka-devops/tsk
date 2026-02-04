@@ -38,7 +38,7 @@ fn main() {
         }
 
         Some(Command::Today) => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::Today, &cli.tags);
+            commands::today::run(&store, &config);
         }
 
         Some(Command::Week) => {
