@@ -9,6 +9,7 @@ pub struct Todo {
     pub priority: Option<u8>,
     pub deadline: Option<DateTime<Local>>,
     pub tags: Vec<String>,
+    pub project: Option<String>,
     pub created_at: DateTime<Local>,
     pub completed_at: Option<DateTime<Local>>,
 }
@@ -22,6 +23,7 @@ impl Todo {
             priority: None,
             deadline: None,
             tags: Vec::new(),
+            project: None,
             created_at: Local::now(),
             completed_at: None,
         }
@@ -40,6 +42,18 @@ impl Todo {
     pub fn with_tags(mut self, tags: Vec<String>) -> Self {
         self.tags = tags;
         self
+    }
+
+    pub fn with_project(mut self, project: Option<String>) -> Self {
+        self.project = project;
+        self
+    }
+
+    pub fn in_project(&self, project: &str) -> bool {
+        self.project
+            .as_ref()
+            .map(|p| p.eq_ignore_ascii_case(project))
+            .unwrap_or(false)
     }
 
     pub fn mark_done(&mut self) {

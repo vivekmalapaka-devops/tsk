@@ -1,4 +1,4 @@
-use crate::cli::parse_tags_from_text;
+use crate::cli::{parse_project_from_text, parse_tags_from_text};
 use crate::display::{print_error, print_todo_added, DisplayConfig};
 use crate::store::Store;
 use crate::time::parse_time;
@@ -24,8 +24,9 @@ pub fn run(
         }
     }
 
-    // Parse text and extract tags
+    // Parse text and extract tags and project
     let (task_text, tags) = parse_tags_from_text(&text);
+    let project = parse_project_from_text(&text);
 
     if task_text.is_empty() {
         print_error("Task text is required");
@@ -48,7 +49,8 @@ pub fn run(
     let todo = Todo::new(0, task_text)
         .with_priority(priority)
         .with_deadline(deadline)
-        .with_tags(tags);
+        .with_tags(tags)
+        .with_project(project);
 
     let added = store.add(todo);
     print_todo_added(added, config);

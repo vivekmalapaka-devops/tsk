@@ -34,10 +34,27 @@ pub fn format_todo(todo: &Todo, config: &DisplayConfig) -> String {
         "—".to_string()
     };
 
+    let project_str = todo
+        .project
+        .as_ref()
+        .map(|p| format!("@{}", p))
+        .unwrap_or_default();
+
     let tags_str = if todo.tags.is_empty() {
         String::new()
     } else {
         todo.tags.iter().map(|t| format!("+{}", t)).collect::<Vec<_>>().join(" ")
+    };
+
+    // Combine project and tags
+    let metadata_str = if project_str.is_empty() && tags_str.is_empty() {
+        String::new()
+    } else if project_str.is_empty() {
+        tags_str.clone()
+    } else if tags_str.is_empty() {
+        project_str.clone()
+    } else {
+        format!("{} {}", project_str, tags_str)
     };
 
     let checkmark = if todo.done { "✓" } else { " " };
@@ -68,17 +85,29 @@ pub fn format_todo(todo: &Todo, config: &DisplayConfig) -> String {
             deadline_str.normal()
         };
 
+        let project_colored = project_str.magenta();
         let tags_colored = tags_str.cyan();
         let checkmark_colored = if todo.done { checkmark.green() } else { checkmark.normal() };
 
+        // Combine project and tags with colors
+        let metadata_colored = if project_str.is_empty() && tags_str.is_empty() {
+            String::new()
+        } else if project_str.is_empty() {
+            format!("{}", tags_colored)
+        } else if tags_str.is_empty() {
+            format!("{}", project_colored)
+        } else {
+            format!("{} {}", project_colored, tags_colored)
+        };
+
         format!(
             "{} {} {}  {:<35}  {:<18}  {}",
-            checkmark_colored, id_colored, priority_colored, text_colored, deadline_colored, tags_colored
+            checkmark_colored, id_colored, priority_colored, text_colored, deadline_colored, metadata_colored
         )
     } else {
         format!(
             "{} {} {}  {:<35}  {:<18}  {}",
-            checkmark, id, priority, text, deadline_str, tags_str
+            checkmark, id, priority, text, deadline_str, metadata_str
         )
     }
 }
@@ -98,6 +127,10 @@ pub fn print_todo_added(todo: &Todo, config: &DisplayConfig) {
 
     if let Some(deadline) = todo.deadline {
         parts.push(format_deadline(deadline, false));
+    }
+
+    if let Some(ref project) = todo.project {
+        parts.push(format!("@{}", project));
     }
 
     if !todo.tags.is_empty() {
@@ -146,6 +179,15 @@ pub fn print_todo_updated(todo: &Todo, config: &DisplayConfig) {
 
     if let Some(deadline) = todo.deadline {
         parts.push(format_deadline(deadline, false));
+    }
+
+    if let Some(ref project) = todo.project {
+        parts.push(format!("@{}", project));
+    }
+
+    if !todo.tags.is_empty() {
+        let tags = todo.tags.iter().map(|t| format!("+{}", t)).collect::<Vec<_>>().join(" ");
+        parts.push(tags);
     }
 
     let msg = parts.join(" ");

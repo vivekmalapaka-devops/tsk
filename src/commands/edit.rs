@@ -1,4 +1,4 @@
-use crate::cli::parse_tag_modifications;
+use crate::cli::{parse_project_from_text, parse_tag_modifications};
 use crate::display::{print_error, print_todo_updated, DisplayConfig};
 use crate::store::Store;
 use crate::time::parse_time;
@@ -10,6 +10,7 @@ pub fn run(
     time: Option<String>,
     clear_time: bool,
     clear_priority: bool,
+    clear_project: bool,
     store: &mut Store,
     config: &DisplayConfig,
 ) {
@@ -32,10 +33,13 @@ pub fn run(
     // Parse tag modifications from text
     let (add_tags, remove_tags) = parse_tag_modifications(&text);
 
-    // Extract actual text (excluding tags)
+    // Parse project from text
+    let project = parse_project_from_text(&text);
+
+    // Extract actual text (excluding tags and project)
     let new_text: String = text
         .iter()
-        .filter(|p| !p.starts_with('+') && !p.starts_with('-'))
+        .filter(|p| !p.starts_with('+') && !p.starts_with('-') && !p.starts_with('@'))
         .cloned()
         .collect::<Vec<_>>()
         .join(" ");
@@ -71,6 +75,13 @@ pub fn run(
     }
     for tag in remove_tags {
         todo.remove_tag(&tag);
+    }
+
+    // Update project
+    if clear_project {
+        todo.project = None;
+    } else if project.is_some() {
+        todo.project = project;
     }
 
     print_todo_updated(todo, config);

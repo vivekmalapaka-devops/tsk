@@ -4,5 +4,6 @@ pub mod delete;
 pub mod done;
 pub mod edit;
 pub mod list;
+pub mod project;
 pub mod stats;
 pub mod today;

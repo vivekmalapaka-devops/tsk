@@ -30,11 +30,11 @@ fn main() {
         }
 
         Some(Command::Ls) | None => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::Open, &cli.tags);
+            commands::list::run(&store, &config, cli.sort_by, Filter::Open, &cli.tags, cli.project.as_deref());
         }
 
         Some(Command::All) => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::All, &cli.tags);
+            commands::list::run(&store, &config, cli.sort_by, Filter::All, &cli.tags, cli.project.as_deref());
         }
 
         Some(Command::Today) => {
@@ -42,11 +42,11 @@ fn main() {
         }
 
         Some(Command::Week) => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::Week, &cli.tags);
+            commands::list::run(&store, &config, cli.sort_by, Filter::Week, &cli.tags, cli.project.as_deref());
         }
 
         Some(Command::Overdue) => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::Overdue, &cli.tags);
+            commands::list::run(&store, &config, cli.sort_by, Filter::Overdue, &cli.tags, cli.project.as_deref());
         }
 
         Some(Command::Done { ids }) => {
@@ -64,8 +64,17 @@ fn main() {
             t,
             clear_time,
             clear_priority,
+            clear_project,
         }) => {
-            commands::edit::run(id, text, p, t, clear_time, clear_priority, &mut store, &config);
+            commands::edit::run(id, text, p, t, clear_time, clear_priority, clear_project, &mut store, &config);
+        }
+
+        Some(Command::Project { name }) => {
+            commands::project::run(&store, &config, &name);
+        }
+
+        Some(Command::Projects) => {
+            commands::project::list_projects(&store, &config);
         }
 
         Some(Command::Clear) => {

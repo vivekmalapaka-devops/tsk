@@ -17,6 +17,7 @@ pub fn run(
     sort_by: Option<SortBy>,
     filter: Filter,
     tag_filters: &[String],
+    project_filter: Option<&str>,
 ) {
     let mut todos: Vec<&Todo> = match filter {
         Filter::Open => store.open_todos().collect(),
@@ -31,6 +32,11 @@ pub fn run(
     // Apply tag filters
     if !tag_filters.is_empty() {
         todos.retain(|t| tag_filters.iter().all(|tag| t.has_tag(tag)));
+    }
+
+    // Apply project filter
+    if let Some(project) = project_filter {
+        todos.retain(|t| t.in_project(project));
     }
 
     if todos.is_empty() {

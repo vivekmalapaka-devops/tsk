@@ -22,6 +22,10 @@ pub struct Cli {
     /// Filter by tag (can be repeated)
     #[arg(short = 'T', long = "tag", global = true)]
     pub tags: Vec<String>,
+
+    /// Filter by project
+    #[arg(short = 'P', long = "project", global = true)]
+    pub project: Option<String>,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -92,6 +96,10 @@ pub enum Command {
         /// Clear priority
         #[arg(long)]
         clear_priority: bool,
+
+        /// Clear project
+        #[arg(long)]
+        clear_project: bool,
     },
 
     /// Clear all completed tasks
@@ -108,6 +116,17 @@ pub enum Command {
 
     /// Show overdue tasks
     Overdue,
+
+    /// Show tasks in a project
+    #[command(name = "project")]
+    Project {
+        /// Project name
+        name: String,
+    },
+
+    /// List all projects
+    #[command(name = "projects")]
+    Projects,
 }
 
 impl Cli {
@@ -132,12 +151,28 @@ pub fn parse_tags_from_text(parts: &[String]) -> (String, Vec<String>) {
         } else if part.starts_with('-') && part.len() > 1 {
             // Skip removal tags in add context
             continue;
+        } else if part.starts_with('@') && part.len() > 1 {
+            // Skip project markers - handled separately
+            continue;
         } else {
             text_parts.push(part.clone());
         }
     }
 
     (text_parts.join(" "), tags)
+}
+
+pub fn parse_project_from_text(parts: &[String]) -> Option<String> {
+    // Last @project wins if multiple specified
+    let mut project = None;
+
+    for part in parts {
+        if part.starts_with('@') && part.len() > 1 {
+            project = Some(part[1..].to_string());
+        }
+    }
+
+    project
 }
 
 pub fn parse_tag_modifications(parts: &[String]) -> (Vec<String>, Vec<String>) {
