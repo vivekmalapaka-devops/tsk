@@ -18,7 +18,7 @@ pub fn run(store: &mut Store, config: &DisplayConfig) {
         println!("{}", msg);
     }
 
-    if let Err(e) = store.save() {
+    if let Err(e) = store.save_with_undo() {
         print_error(&format!("Could not save: {}", e));
     }
 }

@@ -50,11 +50,53 @@ impl Store {
         Ok(())
     }
 
+    pub fn save_with_undo(&self) -> io::Result<()> {
+        let path = Self::path()?;
+        let undo_path = Self::undo_path()?;
+
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+
+        // Save current state as undo snapshot before overwriting
+        if path.exists() {
+            let current = fs::read_to_string(&path)?;
+            fs::write(&undo_path, current)?;
+        }
+
+        let content = serde_json::to_string_pretty(self)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        fs::write(&path, content)?;
+        Ok(())
+    }
+
+    pub fn undo() -> io::Result<Self> {
+        let path = Self::path()?;
+        let undo_path = Self::undo_path()?;
+
+        if !undo_path.exists() {
+            return Err(io::Error::new(io::ErrorKind::NotFound, "Nothing to undo"));
+        }
+
+        fs::copy(&undo_path, &path)?;
+        fs::remove_file(&undo_path)?;
+
+        Self::load()
+    }
+
     fn path() -> io::Result<PathBuf> {
         let home = dirs::home_dir()
             .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Home directory not found"))?;
 
         Ok(home.join(".tsk").join("todos.json"))
+    }
+
+    fn undo_path() -> io::Result<PathBuf> {
+        let home = dirs::home_dir()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Home directory not found"))?;
+
+        Ok(home.join(".tsk").join("undo.json"))
     }
 
     pub fn add(&mut self, mut todo: Todo) -> &Todo {

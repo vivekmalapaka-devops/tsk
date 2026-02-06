@@ -105,6 +105,10 @@ pub enum Command {
     /// Clear all completed tasks
     Clear,
 
+    /// Undo last action
+    #[command(alias = "u")]
+    Undo,
+
     /// Show task statistics
     Stats,
 
