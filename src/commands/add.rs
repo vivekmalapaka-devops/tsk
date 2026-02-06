@@ -55,7 +55,7 @@ pub fn run(
     let added = store.add(todo);
     print_todo_added(added, config);
 
-    if let Err(e) = store.save() {
+    if let Err(e) = store.save_with_undo() {
         print_error(&format!("Could not save: {}", e));
     }
 }

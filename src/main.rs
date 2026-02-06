@@ -81,6 +81,10 @@ fn main() {
             commands::clear::run(&mut store, &config);
         }
 
+        Some(Command::Undo) => {
+            commands::undo::run(&config);
+        }
+
         Some(Command::Stats) => {
             commands::stats::run(&store, &config);
         }

@@ -86,7 +86,7 @@ pub fn run(
 
     print_todo_updated(todo, config);
 
-    if let Err(e) = store.save() {
+    if let Err(e) = store.save_with_undo() {
         print_error(&format!("Could not save: {}", e));
     }
 }

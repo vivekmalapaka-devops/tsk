@@ -19,7 +19,7 @@ pub fn run(ids: Vec<u32>, store: &mut Store, config: &DisplayConfig) {
     }
 
     if success {
-        if let Err(e) = store.save() {
+        if let Err(e) = store.save_with_undo() {
             print_error(&format!("Could not save: {}", e));
         }
     }

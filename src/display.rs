@@ -198,6 +198,19 @@ pub fn print_todo_updated(todo: &Todo, config: &DisplayConfig) {
     }
 }
 
+pub fn print_undo_success(task_count: usize, config: &DisplayConfig) {
+    let msg = format!(
+        "Undo successful. Restored {} task{}.",
+        task_count,
+        if task_count == 1 { "" } else { "s" }
+    );
+    if config.use_color {
+        println!("{}", msg.green());
+    } else {
+        println!("{}", msg);
+    }
+}
+
 pub fn print_error(msg: &str) {
     eprintln!("{}: {}", "Error".red().bold(), msg);
 }
