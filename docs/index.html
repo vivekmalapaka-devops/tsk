@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>tsk - Fast, minimal terminal todo manager</title>
-  <meta name="description" content="A fast, minimal terminal todo manager written in Rust. Manage tasks with priorities, projects, tags, and natural time formats.">
-  <meta name="theme-color" content="#0d1117">
+  <title>tsk — terminal task manager</title>
+  <meta name="description" content="A fast, minimal terminal task manager written in Rust. Manage tasks with priorities, projects, tags, and natural time formats.">
+  <meta name="theme-color" content="#000000">
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='monospace' fill='%233fb950'>❯</text></svg>">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="tsk - Terminal Todo Manager">
-  <meta property="og:description" content="A fast, minimal terminal todo manager written in Rust.">
+  <meta property="og:title" content="tsk — Terminal Task Manager">
+  <meta property="og:description" content="A fast, minimal terminal task manager written in Rust.">
   <meta property="og:type" content="website">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     *, *::before, *::after {
@@ -27,30 +27,25 @@
     }
 
     :root {
-      --bg-primary: #0d1117;
-      --bg-secondary: #161b22;
-      --bg-tertiary: #21262d;
-      --border: #30363d;
-      --text-primary: #e6edf3;
-      --text-secondary: #8b949e;
-      --text-muted: #6e7681;
-      --accent-green: #3fb950;
-      --accent-green-bright: #56d364;
-      --accent-red: #f85149;
-      --accent-yellow: #d29922;
-      --accent-blue: #58a6ff;
-      --accent-cyan: #39c5cf;
-      --accent-magenta: #bc8cff;
-      --accent-orange: #f0883e;
-      --glow-green: 0 0 20px rgba(63, 185, 80, 0.4);
-      --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
-      --space-xs: 0.25rem;
-      --space-sm: 0.5rem;
-      --space-md: 1rem;
-      --space-lg: 1.5rem;
-      --space-xl: 2rem;
-      --space-2xl: 3rem;
-      --space-3xl: 4rem;
+      --black: #000000;
+      --surface: #0a0a0a;
+      --surface-raised: #111111;
+      --surface-highest: #1a1a1a;
+      --border: #222222;
+      --border-light: #333333;
+      --text: #e8e8e8;
+      --text-dim: #999999;
+      --text-muted: #666666;
+      --green: #4ade80;
+      --green-dim: #22c55e;
+      --red: #f87171;
+      --yellow: #facc15;
+      --blue: #60a5fa;
+      --cyan: #22d3ee;
+      --magenta: #c084fc;
+      --orange: #fb923c;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
     }
 
     html {
@@ -59,122 +54,150 @@
 
     body {
       font-family: var(--font-mono);
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      background: var(--black);
+      color: var(--text);
       line-height: 1.6;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    /* Subtle scanline overlay */
-    body::before {
+    /* Grain texture */
+    body::after {
       content: '';
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
       pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.03) 0px,
-        rgba(0, 0, 0, 0.03) 1px,
-        transparent 1px,
-        transparent 2px
-      );
-      z-index: 1000;
+      z-index: 9999;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     }
 
     a {
-      color: var(--accent-blue);
+      color: var(--green);
       text-decoration: none;
-      transition: color 0.2s ease;
+      transition: opacity 0.2s;
     }
 
     a:hover {
-      color: var(--accent-cyan);
+      opacity: 0.8;
     }
 
-    .container {
-      width: 100%;
-      max-width: 900px;
+    /* Layout */
+    .wrap {
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 0 var(--space-lg);
+      padding: 0 clamp(1.5rem, 5vw, 4rem);
     }
 
     /* Header */
     header {
-      padding: var(--space-lg) 0;
-      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 0;
       position: sticky;
       top: 0;
-      background: rgba(13, 17, 23, 0.95);
-      backdrop-filter: blur(10px);
       z-index: 100;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(12px);
     }
 
-    .header-content {
+    .header-inner {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .logo {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      transition: transform 0.2s ease;
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
     }
 
-    .logo:hover {
-      transform: scale(1.05);
-    }
-
-    .logo-icon {
-      color: var(--accent-green);
+    .logo span {
+      color: var(--green);
     }
 
     nav {
       display: flex;
-      gap: var(--space-lg);
+      gap: 2rem;
+      align-items: center;
     }
 
     nav a {
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      transition: color 0.2s ease;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color 0.2s;
     }
 
     nav a:hover {
-      color: var(--text-primary);
+      color: var(--text);
+      opacity: 1;
     }
 
-    /* Hero Section */
+    /* Hero */
     .hero {
-      padding: var(--space-3xl) 0;
-      text-align: center;
+      padding: clamp(4rem, 12vh, 8rem) 0 clamp(3rem, 8vh, 6rem);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-label {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: reveal 0.8s ease 0.1s forwards;
     }
 
     .hero h1 {
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 700;
-      margin-bottom: var(--space-md);
-      line-height: 1.2;
+      font-family: var(--font-serif);
+      font-weight: 400;
+      font-size: clamp(3.5rem, 10vw, 7rem);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: 2rem;
+      max-width: 700px;
       opacity: 0;
-      animation: fadeInUp 0.6s ease forwards;
+      animation: reveal 0.8s ease 0.2s forwards;
     }
 
-    .hero h1 .highlight {
-      color: var(--accent-green);
-      position: relative;
+    .hero h1 em {
+      font-style: italic;
+      color: var(--green);
     }
 
-    @keyframes fadeInUp {
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--text-dim);
+      max-width: 420px;
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: reveal 0.8s ease 0.35s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: reveal 0.8s ease 0.5s forwards;
+    }
+
+    @keyframes reveal {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(12px);
       }
       to {
         opacity: 1;
@@ -182,575 +205,492 @@
       }
     }
 
-    .hero .tagline {
-      font-size: 1.125rem;
-      color: var(--text-secondary);
-      margin-bottom: var(--space-xl);
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      opacity: 0;
-      animation: fadeInUp 0.6s ease 0.1s forwards;
-    }
-
-    .hero-cta {
-      display: flex;
-      gap: var(--space-md);
-      justify-content: center;
-      flex-wrap: wrap;
-      opacity: 0;
-      animation: fadeInUp 0.6s ease 0.2s forwards;
-    }
-
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: var(--space-sm);
-      padding: var(--space-sm) var(--space-lg);
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 0.875rem;
+      gap: 0.5rem;
+      padding: 0.75rem 1.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
       font-weight: 500;
+      border: 1px solid;
+      border-radius: 0;
       cursor: pointer;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
+      transition: all 0.2s;
+      text-decoration: none;
     }
 
     .btn-primary {
-      background: var(--accent-green);
-      color: var(--bg-primary);
-      border-color: var(--accent-green);
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--black);
     }
 
     .btn-primary:hover {
-      background: var(--accent-green-bright);
-      box-shadow: var(--glow-green);
-      transform: translateY(-2px);
-    }
-
-    .btn-secondary {
       background: transparent;
-      color: var(--text-primary);
-      border-color: var(--border);
+      color: var(--green);
+      opacity: 1;
     }
 
-    .btn-secondary:hover {
-      border-color: var(--text-secondary);
-      transform: translateY(-2px);
+    .btn-ghost {
+      background: transparent;
+      border-color: var(--border-light);
+      color: var(--text-dim);
     }
 
-    /* Terminal Demo */
+    .btn-ghost:hover {
+      border-color: var(--text-dim);
+      color: var(--text);
+      opacity: 1;
+    }
+
+    /* Terminal */
     .terminal-section {
-      padding: var(--space-2xl) 0;
-    }
-
-    .terminal {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      transition: box-shadow 0.3s ease, transform 0.3s ease;
-    }
-
-    .terminal:hover {
-      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--accent-green);
-      transform: translateY(-2px);
-    }
-
-    .terminal-header {
-      background: var(--bg-tertiary);
-      padding: var(--space-sm) var(--space-md);
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
+      padding: clamp(3rem, 8vh, 6rem) 0;
       border-bottom: 1px solid var(--border);
     }
 
-    .terminal-dot {
-      width: 12px;
-      height: 12px;
+    .terminal-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .terminal:hover {
+      border-color: var(--border-light);
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 16px;
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-bar i {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      transition: transform 0.2s ease;
     }
 
-    .terminal:hover .terminal-dot {
-      transform: scale(1.1);
-    }
+    .terminal-bar i:nth-child(1) { background: #ff5f57; }
+    .terminal-bar i:nth-child(2) { background: #febc2e; }
+    .terminal-bar i:nth-child(3) { background: #28c840; }
 
-    .terminal-dot.red { background: var(--accent-red); }
-    .terminal-dot.yellow { background: var(--accent-yellow); }
-    .terminal-dot.green { background: var(--accent-green); }
-
-    .terminal-title {
-      flex: 1;
-      text-align: center;
-      font-size: 0.75rem;
+    .terminal-bar span {
+      margin-left: auto;
+      font-size: 0.7rem;
       color: var(--text-muted);
     }
 
     .terminal-body {
-      padding: var(--space-lg);
+      padding: 1.25rem 1.5rem;
       min-height: 300px;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
+      line-height: 1.7;
       position: relative;
     }
 
     .terminal-line {
-      margin-bottom: var(--space-xs);
+      margin-bottom: 2px;
       opacity: 0;
-      animation: fadeIn 0.3s ease forwards;
+      transition: opacity 0.25s ease;
     }
 
-    .terminal-line.visible {
-      opacity: 1;
-    }
+    .terminal-line.visible { opacity: 1; }
 
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
+    .prompt { color: var(--green); }
+    .command { color: var(--text); }
+    .output { color: var(--text-dim); }
 
-    .prompt {
-      color: var(--accent-green);
-    }
-
-    .command {
-      color: var(--text-primary);
-    }
-
-    .output {
-      color: var(--text-secondary);
-      padding-left: 0;
-    }
-
-    .output .id {
-      color: var(--text-muted);
-      display: inline-block;
-      min-width: 2ch;
-    }
-
-    .output .priority-high { color: var(--accent-red); }
-    .output .priority-med { color: var(--accent-yellow); }
-    .output .priority-low { color: var(--accent-blue); }
-    .output .tag { color: var(--accent-cyan); }
-    .output .project { color: var(--accent-magenta); }
-    .output .time { color: var(--accent-orange); }
-    .output .done { color: var(--accent-green); }
-    .output .task-text { color: var(--text-primary); }
+    .output .id { color: var(--text-muted); display: inline-block; min-width: 2ch; }
+    .output .priority-high { color: var(--red); }
+    .output .priority-med { color: var(--yellow); }
+    .output .priority-low { color: var(--blue); }
+    .output .tag { color: var(--cyan); }
+    .output .project { color: var(--magenta); }
+    .output .time { color: var(--orange); }
+    .output .done { color: var(--green); }
+    .output .task-text { color: var(--text); }
 
     .cursor {
       display: inline-block;
       width: 8px;
-      height: 1.2em;
-      background: var(--accent-green);
+      height: 1.1em;
+      background: var(--green);
       animation: blink 1s step-end infinite;
       vertical-align: text-bottom;
     }
 
-    @keyframes blink {
-      50% { opacity: 0; }
-    }
+    @keyframes blink { 50% { opacity: 0; } }
 
-    .terminal-hint {
+    .terminal-replay {
       position: absolute;
-      bottom: var(--space-sm);
-      right: var(--space-md);
-      font-size: 0.7rem;
+      bottom: 10px;
+      right: 14px;
+      font-size: 0.65rem;
       color: var(--text-muted);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.3s;
+      cursor: pointer;
     }
 
-    .terminal:hover .terminal-hint {
-      opacity: 0.6;
+    .terminal:hover .terminal-replay { opacity: 1; }
+
+    /* Section shared */
+    .section {
+      padding: clamp(3rem, 8vh, 6rem) 0;
+      border-bottom: 1px solid var(--border);
     }
 
-    /* Scroll animations */
-    .fade-in-section {
+    .section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-eyebrow {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-heading {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 3rem;
+    }
+
+    /* Scroll reveal */
+    .sr {
       opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
+      transform: translateY(16px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
     }
 
-    .fade-in-section.visible {
+    .sr.visible {
       opacity: 1;
       transform: translateY(0);
     }
 
-    /* Features Section */
-    .features {
-      padding: var(--space-3xl) 0;
-    }
-
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin-bottom: var(--space-xl);
-      text-align: center;
-    }
-
-    .section-title::before {
-      content: '# ';
-      color: var(--accent-green);
-    }
-
+    /* Features */
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: var(--space-lg);
-    }
-
-    .feature-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: var(--space-lg);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .feature-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background: var(--accent-green);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease;
-    }
-
-    .feature-card:hover {
-      border-color: var(--accent-green);
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    }
-
-    .feature-card:hover::after {
-      transform: scaleX(1);
-    }
-
-    .feature-icon {
-      font-size: 1.25rem;
-      margin-bottom: var(--space-sm);
-    }
-
-    .feature-card h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: var(--space-sm);
-    }
-
-    .feature-card p {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-
-    .feature-card code {
-      background: var(--bg-tertiary);
-      padding: 0.1em 0.3em;
-      border-radius: 3px;
-      font-size: 0.8em;
-    }
-
-    /* Install Section */
-    .install {
-      padding: var(--space-3xl) 0;
-    }
-
-    .install-options {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-lg);
-    }
-
-    .install-option {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: var(--space-lg);
-      transition: border-color 0.2s ease;
-    }
-
-    .install-option:hover {
-      border-color: var(--accent-green);
-    }
-
-    .install-option h3 {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: var(--space-md);
-    }
-
-    .code-block {
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: var(--space-md);
-      overflow-x: auto;
-      position: relative;
-    }
-
-    .code-block code {
-      font-size: 0.875rem;
-      color: var(--text-primary);
-    }
-
-    .copy-btn {
-      position: absolute;
-      top: var(--space-sm);
-      right: var(--space-sm);
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: var(--space-xs) var(--space-sm);
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .copy-btn:hover {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
       background: var(--border);
-      color: var(--text-primary);
+      border: 1px solid var(--border);
     }
 
-    .copy-btn.copied {
-      background: var(--accent-green);
-      color: var(--bg-primary);
-      border-color: var(--accent-green);
+    .feature {
+      background: var(--black);
+      padding: clamp(1.5rem, 3vw, 2.5rem);
+      transition: background 0.3s;
     }
 
-    /* Examples Section */
-    .examples {
-      padding: var(--space-3xl) 0;
+    .feature:hover {
+      background: var(--surface);
     }
 
+    .feature-num {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .feature h3 {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      font-size: 1.35rem;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .feature p {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    .feature code {
+      font-family: var(--font-mono);
+      background: var(--surface-highest);
+      padding: 0.15em 0.4em;
+      font-size: 0.85em;
+      color: var(--green);
+    }
+
+    /* Install */
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .install-card {
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .install-card:hover {
+      border-color: var(--border-light);
+    }
+
+    .install-card h3 {
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .install-code {
+      background: var(--surface);
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--green);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .install-code code {
+      flex: 1;
+      color: var(--text);
+    }
+
+    .install-code .copy-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .install-code .copy-btn:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .install-code .copy-btn.copied {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* Examples */
     .examples-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-lg);
-    }
-
-    @media (max-width: 900px) {
-      .examples-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .example-group {
-      background: var(--bg-secondary);
+      gap: 1px;
+      background: var(--border);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      transition: all 0.3s ease;
     }
 
-    .example-group:hover {
-      border-color: var(--accent-green);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    .example-col {
+      background: var(--black);
     }
 
-    .example-group h3 {
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: var(--space-md) var(--space-lg);
-      background: var(--bg-tertiary);
+    .example-col-header {
+      padding: 1.25rem 1.5rem;
       border-bottom: 1px solid var(--border);
-      color: var(--text-primary);
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
+      gap: 0.5rem;
     }
 
-    .example-group h3 .icon {
-      font-size: 1rem;
+    .example-col-header .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
     }
 
-    .example-list {
-      padding: var(--space-md);
+    .example-row {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
     }
 
-    .example-item {
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-bottom: var(--space-sm);
-      overflow: hidden;
-      transition: all 0.2s ease;
+    .example-row:last-child {
+      border-bottom: none;
     }
 
-    .example-item:last-child {
-      margin-bottom: 0;
+    .example-row:hover {
+      background: var(--surface);
     }
 
-    .example-item:hover {
-      border-color: var(--accent-cyan);
-    }
-
-    .example-item:hover .example-copy {
+    .example-row:hover .example-row-copy {
       opacity: 1;
     }
 
-    .example-cmd {
+    .example-row-cmd {
       font-size: 0.8rem;
-      padding: var(--space-sm) var(--space-md);
+      margin-bottom: 0.25rem;
       display: flex;
       align-items: center;
-      gap: var(--space-sm);
-      position: relative;
-      cursor: pointer;
+      gap: 0.5rem;
     }
 
-    .example-cmd .prompt {
-      color: var(--accent-green);
-      user-select: none;
-    }
+    .example-row-cmd .p { color: var(--green); user-select: none; }
+    .example-row-cmd .cn { color: var(--cyan); }
+    .example-row-cmd .ca { color: var(--yellow); }
+    .example-row-cmd .cf { color: var(--magenta); }
+    .example-row-cmd .cp { color: var(--magenta); }
+    .example-row-cmd .ct { color: var(--cyan); }
 
-    .example-cmd .cmd-text {
-      color: var(--text-primary);
-      flex: 1;
-    }
-
-    .example-cmd .cmd-text .cmd-name {
-      color: var(--accent-cyan);
-    }
-
-    .example-cmd .cmd-text .cmd-arg {
-      color: var(--accent-yellow);
-    }
-
-    .example-cmd .cmd-text .cmd-flag {
-      color: var(--accent-magenta);
-    }
-
-    .example-cmd .cmd-text .cmd-tag {
-      color: var(--accent-cyan);
-    }
-
-    .example-cmd .cmd-text .cmd-project {
-      color: var(--accent-magenta);
-    }
-
-    .example-copy {
-      opacity: 0;
-      background: var(--bg-tertiary);
-      border: none;
-      color: var(--text-muted);
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 0.65rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .example-copy:hover {
-      background: var(--accent-green);
-      color: var(--bg-primary);
-    }
-
-    .example-copy.copied {
-      background: var(--accent-green);
-      color: var(--bg-primary);
-    }
-
-    .example-desc {
+    .example-row-desc {
       font-size: 0.7rem;
       color: var(--text-muted);
-      padding: var(--space-xs) var(--space-md) var(--space-sm);
-      border-top: 1px solid var(--border);
-      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .example-row-copy {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .example-row-copy:hover {
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .example-row-copy.copied {
+      border-color: var(--green);
+      color: var(--green);
     }
 
     /* Footer */
     footer {
-      padding: var(--space-2xl) 0;
+      padding: 3rem 0;
       border-top: 1px solid var(--border);
-      text-align: center;
     }
 
-    .footer-content {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      font-size: 0.75rem;
+      color: var(--text-muted);
     }
 
     .footer-links {
       display: flex;
-      justify-content: center;
-      gap: var(--space-lg);
-      margin-bottom: var(--space-md);
+      gap: 1.5rem;
     }
 
     .footer-links a {
-      color: var(--text-secondary);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      transition: color 0.2s;
     }
 
     .footer-links a:hover {
-      color: var(--text-primary);
+      color: var(--text);
+      opacity: 1;
     }
 
     /* Responsive */
-    @media (max-width: 640px) {
-      nav {
-        display: none;
+    @media (max-width: 768px) {
+      nav { display: none; }
+
+      .features-grid,
+      .examples-grid {
+        grid-template-columns: 1fr;
       }
 
-      .terminal-body {
-        font-size: 0.75rem;
-        padding: var(--space-md);
+      .install-grid {
+        grid-template-columns: 1fr;
       }
 
-      .hero-cta {
+      .hero-actions {
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
       }
 
       .btn {
         width: 100%;
-        max-width: 250px;
         justify-content: center;
+        max-width: 260px;
+      }
+
+      .terminal-body {
+        font-size: 0.75rem;
+        padding: 1rem;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
       }
     }
 
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
 
-    ::-webkit-scrollbar-track {
-      background: var(--bg-secondary);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--accent-green);
-    }
-
-    /* Selection */
     ::selection {
-      background: var(--accent-green);
-      color: var(--bg-primary);
+      background: var(--green);
+      color: var(--black);
     }
   </style>
 </head>
 <body>
+
   <header>
-    <div class="container header-content">
-      <div class="logo">
-        <span class="logo-icon">></span>
-        <span>tsk</span>
-      </div>
+    <div class="wrap header-inner">
+      <div class="logo"><span>tsk</span></div>
       <nav>
         <a href="#features">Features</a>
         <a href="#install">Install</a>
@@ -762,186 +702,178 @@
 
   <main>
     <section class="hero">
-      <div class="container">
-        <h1>Tasks at the <span class="highlight">speed of thought</span></h1>
-        <p class="tagline">A fast, minimal terminal todo manager written in Rust. No bloat. No friction. Just tsk.</p>
-        <div class="hero-cta">
-          <a href="#install" class="btn btn-primary">
-            <span>Get Started</span>
-          </a>
-          <a href="https://github.com/vivekmalapaka-devops/tsk" class="btn btn-secondary" target="_blank" rel="noopener">
-            <span>View on GitHub</span>
-          </a>
+      <div class="wrap">
+        <div class="hero-label">Terminal task manager, written in Rust</div>
+        <h1>Do more.<br>Type <em>less.</em></h1>
+        <p class="hero-desc">A fast, minimal task manager that lives in your terminal. No bloat, no GUI, no friction. Just tsk.</p>
+        <div class="hero-actions">
+          <a href="#install" class="btn btn-primary">Get started</a>
+          <a href="https://github.com/vivekmalapaka-devops/tsk" class="btn btn-ghost" target="_blank" rel="noopener">Source code</a>
         </div>
       </div>
     </section>
 
     <section class="terminal-section">
-      <div class="container">
+      <div class="wrap">
+        <div class="terminal-label">See it in action</div>
         <div class="terminal">
-          <div class="terminal-header">
-            <div class="terminal-dot red"></div>
-            <div class="terminal-dot yellow"></div>
-            <div class="terminal-dot green"></div>
-            <div class="terminal-title">~/projects — tsk</div>
+          <div class="terminal-bar">
+            <i></i><i></i><i></i>
+            <span>~/projects</span>
           </div>
           <div class="terminal-body" id="terminal">
-            <!-- Terminal content populated by JS -->
           </div>
-          <span class="terminal-hint">click to replay</span>
+          <span class="terminal-replay">click to replay</span>
         </div>
       </div>
     </section>
 
-    <section class="features fade-in-section" id="features">
-      <div class="container">
-        <h2 class="section-title">Features</h2>
+    <section class="section sr" id="features">
+      <div class="wrap">
+        <div class="section-eyebrow">What you get</div>
+        <h2 class="section-heading">Everything you need.<br>Nothing you don't.</h2>
         <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <h3>Blazing Fast</h3>
-            <p>Written in Rust. Starts instantly. Zero lag between thought and action.</p>
+          <div class="feature">
+            <div class="feature-num">01</div>
+            <h3>Instant</h3>
+            <p>Written in Rust. Zero startup cost. Finishes before you lift your finger off the key.</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">🎯</div>
-            <h3>Priority Levels</h3>
-            <p>Mark urgency with <code>-p 1</code> (!!!), <code>-p 2</code> (!!), or <code>-p 3</code> (!)</p>
+          <div class="feature">
+            <div class="feature-num">02</div>
+            <h3>Priorities</h3>
+            <p>Three levels: <code>-p 1</code> critical, <code>-p 2</code> important, <code>-p 3</code> low. Tasks sort themselves.</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">📁</div>
+          <div class="feature">
+            <div class="feature-num">03</div>
             <h3>Projects & Tags</h3>
-            <p>Organize with <code>@project</code> and <code>+tag</code> syntax. Filter and focus.</p>
+            <p>Organize with <code>@project</code> and <code>+tag</code>. Filter by what matters right now.</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">🕐</div>
+          <div class="feature">
+            <div class="feature-num">04</div>
             <h3>Natural Time</h3>
-            <p>Due dates like <code>tomorrow</code>, <code>friday 5pm</code>, <code>in 2 hours</code></p>
+            <p>Set deadlines like a human: <code>tomorrow</code>, <code>fri 5pm</code>, <code>in 2 hours</code>.</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">📅</div>
-            <h3>Smart Filtering</h3>
-            <p>View tasks due <code>today</code>, this <code>week</code>, or filter by project and tag.</p>
+          <div class="feature">
+            <div class="feature-num">05</div>
+            <h3>Smart Views</h3>
+            <p>See what's due <code>today</code>, this <code>week</code>, or slice by project and tag instantly.</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">💾</div>
-            <h3>Simple Storage</h3>
-            <p>Tasks stored in <code>~/.tsk/todos.json</code>. Portable. Inspectable. Yours.</p>
+          <div class="feature">
+            <div class="feature-num">06</div>
+            <h3>Plain JSON</h3>
+            <p>Stored at <code>~/.tsk/todos.json</code>. Version control it. Script it. It's yours.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="install fade-in-section" id="install">
-      <div class="container">
-        <h2 class="section-title">Install</h2>
-        <div class="install-options">
-          <div class="install-option">
-            <h3>From source (requires Rust)</h3>
-            <div class="code-block">
-              <button class="copy-btn" data-copy="cargo install --path .">Copy</button>
+    <section class="section sr" id="install">
+      <div class="wrap">
+        <div class="section-eyebrow">Get started</div>
+        <h2 class="section-heading">Install in seconds.</h2>
+        <div class="install-grid">
+          <div class="install-card">
+            <h3>From source</h3>
+            <div class="install-code">
               <code>cargo install --path .</code>
+              <button class="copy-btn" data-copy="cargo install --path .">Copy</button>
             </div>
           </div>
-          <div class="install-option">
-            <h3>Or build and copy binary</h3>
-            <div class="code-block">
+          <div class="install-card">
+            <h3>Build binary</h3>
+            <div class="install-code">
+              <code>cargo build --release</code>
               <button class="copy-btn" data-copy="cargo build --release && cp target/release/tsk ~/.local/bin/">Copy</button>
-              <code>cargo build --release && cp target/release/tsk ~/.local/bin/</code>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="examples fade-in-section" id="examples">
-      <div class="container">
-        <h2 class="section-title">Examples</h2>
+    <section class="section sr" id="examples">
+      <div class="wrap">
+        <div class="section-eyebrow">Usage</div>
+        <h2 class="section-heading">Learn by example.</h2>
         <div class="examples-grid">
-          <div class="example-group">
-            <h3><span class="icon">✚</span> Adding tasks</h3>
-            <div class="example-list">
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk add &quot;Buy groceries&quot;">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk add</span> <span class="cmd-arg">"Buy groceries"</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">Add a simple task</div>
+          <div class="example-col">
+            <div class="example-col-header"><span class="dot"></span> Add</div>
+            <div class="example-row" data-cmd='tsk add "Buy groceries"'>
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk add</span> <span class="ca">"Buy groceries"</span></span>
               </div>
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk add &quot;Call client&quot; -p 1 -t 11am @work +urgent">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk add</span> <span class="cmd-arg">"Call client"</span> <span class="cmd-flag">-p 1 -t 11am</span> <span class="cmd-project">@work</span> <span class="cmd-tag">+urgent</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">Priority, deadline, project & tag</div>
+              <div class="example-row-desc">Simple task</div>
+              <button class="example-row-copy">copy</button>
+            </div>
+            <div class="example-row" data-cmd='tsk add "Call client" -p 1 -t 11am @work +urgent'>
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk add</span> <span class="ca">"Call client"</span> <span class="cf">-p 1 -t 11am</span> <span class="cp">@work</span> <span class="ct">+urgent</span></span>
               </div>
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk a &quot;Review PR&quot; -t tomorrow @code">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk a</span> <span class="cmd-arg">"Review PR"</span> <span class="cmd-flag">-t tomorrow</span> <span class="cmd-project">@code</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">Short alias with natural time</div>
+              <div class="example-row-desc">Priority, deadline, project, tag</div>
+              <button class="example-row-copy">copy</button>
+            </div>
+            <div class="example-row" data-cmd='tsk a "Review PR" -t tomorrow @code'>
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk a</span> <span class="ca">"Review PR"</span> <span class="cf">-t tomorrow</span> <span class="cp">@code</span></span>
               </div>
+              <div class="example-row-desc">Short alias, natural time</div>
+              <button class="example-row-copy">copy</button>
             </div>
           </div>
-          <div class="example-group">
-            <h3><span class="icon">☰</span> Viewing tasks</h3>
-            <div class="example-list">
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">List all open tasks by priority</div>
+          <div class="example-col">
+            <div class="example-col-header"><span class="dot"></span> View</div>
+            <div class="example-row" data-cmd="tsk">
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk</span></span>
               </div>
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk today">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk today</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">Show tasks due today</div>
+              <div class="example-row-desc">All open tasks by priority</div>
+              <button class="example-row-copy">copy</button>
+            </div>
+            <div class="example-row" data-cmd="tsk today">
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk today</span></span>
               </div>
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk -P work --by time">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk</span> <span class="cmd-flag">-P work --by time</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">Filter by project, sort by deadline</div>
+              <div class="example-row-desc">Due today</div>
+              <button class="example-row-copy">copy</button>
+            </div>
+            <div class="example-row" data-cmd="tsk -P work --by time">
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk</span> <span class="cf">-P work --by time</span></span>
               </div>
+              <div class="example-row-desc">Filter project, sort by deadline</div>
+              <button class="example-row-copy">copy</button>
             </div>
           </div>
-          <div class="example-group">
-            <h3><span class="icon">✓</span> Managing tasks</h3>
-            <div class="example-list">
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk done 1">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk done</span> <span class="cmd-arg">1</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">Mark task #1 as complete</div>
+          <div class="example-col">
+            <div class="example-col-header"><span class="dot"></span> Manage</div>
+            <div class="example-row" data-cmd="tsk done 1">
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk done</span> <span class="ca">1</span></span>
               </div>
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk edit 2 -p 1 -t friday">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk edit</span> <span class="cmd-arg">2</span> <span class="cmd-flag">-p 1 -t friday</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">Update priority and deadline</div>
+              <div class="example-row-desc">Complete task #1</div>
+              <button class="example-row-copy">copy</button>
+            </div>
+            <div class="example-row" data-cmd="tsk edit 2 -p 1 -t friday">
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk edit</span> <span class="ca">2</span> <span class="cf">-p 1 -t friday</span></span>
               </div>
-              <div class="example-item">
-                <div class="example-cmd" data-cmd="tsk stats">
-                  <span class="prompt">❯</span>
-                  <span class="cmd-text"><span class="cmd-name">tsk stats</span></span>
-                  <button class="example-copy">copy</button>
-                </div>
-                <div class="example-desc">View progress overview</div>
+              <div class="example-row-desc">Escalate priority, set deadline</div>
+              <button class="example-row-copy">copy</button>
+            </div>
+            <div class="example-row" data-cmd="tsk stats">
+              <div class="example-row-cmd">
+                <span class="p">&#x276F;</span>
+                <span><span class="cn">tsk stats</span></span>
               </div>
+              <div class="example-row-desc">Progress overview</div>
+              <button class="example-row-copy">copy</button>
             </div>
           </div>
         </div>
@@ -950,175 +882,139 @@
   </main>
 
   <footer>
-    <div class="container footer-content">
+    <div class="wrap footer-inner">
+      <div class="footer-left">Built with Rust. MIT License.</div>
       <div class="footer-links">
         <a href="https://github.com/vivekmalapaka-devops/tsk" target="_blank" rel="noopener">GitHub</a>
         <a href="https://github.com/vivekmalapaka-devops/tsk/issues" target="_blank" rel="noopener">Issues</a>
       </div>
-      <p>Built with Rust. MIT License.</p>
     </div>
   </footer>
 
   <script>
     // Terminal animation
-    const terminalCommands = [
-      { type: 'command', text: 'tsk add "Review pull request" -p 1 @work +code' },
-      { type: 'output', text: '<span class="done">✓</span> Added task #1' },
-      { type: 'pause', duration: 400 },
-      { type: 'command', text: 'tsk add "Buy groceries" -t tomorrow @personal' },
-      { type: 'output', text: '<span class="done">✓</span> Added task #2' },
-      { type: 'pause', duration: 400 },
-      { type: 'command', text: 'tsk add "Fix login bug" -p 2 -t friday @work +urgent' },
-      { type: 'output', text: '<span class="done">✓</span> Added task #3' },
-      { type: 'pause', duration: 600 },
-      { type: 'command', text: 'tsk' },
-      { type: 'output', text: '' },
-      { type: 'output', text: '<span class="id">1</span> <span class="priority-high">!!!</span> <span class="task-text">Review pull request</span> <span class="project">@work</span> <span class="tag">+code</span>' },
-      { type: 'output', text: '<span class="id">3</span> <span class="priority-med">!!</span>  <span class="task-text">Fix login bug</span> <span class="time">fri</span> <span class="project">@work</span> <span class="tag">+urgent</span>' },
-      { type: 'output', text: '<span class="id">2</span>      <span class="task-text">Buy groceries</span> <span class="time">tomorrow</span> <span class="project">@personal</span>' },
-      { type: 'pause', duration: 800 },
-      { type: 'command', text: 'tsk done 1' },
-      { type: 'output', text: '<span class="done">✓</span> Completed: Review pull request' },
-      { type: 'pause', duration: 500 },
-      { type: 'command', text: 'tsk stats' },
-      { type: 'output', text: '' },
-      { type: 'output', text: '  <span class="done">Done:</span>  1  <span class="text-secondary">████░░░░░░</span>  33%' },
-      { type: 'output', text: '  <span class="text-secondary">Open:</span>  2' },
-      { type: 'cursor', text: '' }
+    const cmds = [
+      { t: 'cmd', s: 'tsk add "Ship new feature" -p 1 @work +release' },
+      { t: 'out', s: '<span class="done">&#x2713;</span> Added task #1' },
+      { t: 'wait', d: 300 },
+      { t: 'cmd', s: 'tsk add "Code review" -t 3pm @work' },
+      { t: 'out', s: '<span class="done">&#x2713;</span> Added task #2' },
+      { t: 'wait', d: 300 },
+      { t: 'cmd', s: 'tsk add "Fix CI pipeline" -p 2 -t tomorrow +devops' },
+      { t: 'out', s: '<span class="done">&#x2713;</span> Added task #3' },
+      { t: 'wait', d: 500 },
+      { t: 'cmd', s: 'tsk' },
+      { t: 'out', s: '' },
+      { t: 'out', s: '<span class="id">1</span> <span class="priority-high">!!!</span> <span class="task-text">Ship new feature</span> <span class="project">@work</span> <span class="tag">+release</span>' },
+      { t: 'out', s: '<span class="id">3</span> <span class="priority-med">!!</span>  <span class="task-text">Fix CI pipeline</span> <span class="time">tomorrow</span> <span class="tag">+devops</span>' },
+      { t: 'out', s: '<span class="id">2</span>      <span class="task-text">Code review</span> <span class="time">3pm</span> <span class="project">@work</span>' },
+      { t: 'wait', d: 600 },
+      { t: 'cmd', s: 'tsk done 1' },
+      { t: 'out', s: '<span class="done">&#x2713;</span> Completed: Ship new feature' },
+      { t: 'wait', d: 400 },
+      { t: 'cmd', s: 'tsk stats' },
+      { t: 'out', s: '' },
+      { t: 'out', s: '  <span class="done">Done:</span>  1  <span style="color:var(--green)">&#x2588;&#x2588;&#x2588;&#x2588;</span><span style="color:var(--border-light)">&#x2591;&#x2591;&#x2591;&#x2591;&#x2591;&#x2591;</span>  33%' },
+      { t: 'out', s: '  <span style="color:var(--text-dim)">Open:</span>  2' },
+      { t: 'end' }
     ];
 
-    const terminal = document.getElementById('terminal');
-    let isAnimating = false;
+    const el = document.getElementById('terminal');
+    let running = false;
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
+    const wait = ms => new Promise(r => setTimeout(r, ms));
 
-    async function typeText(element, text, speed = 30) {
-      for (let i = 0; i < text.length; i++) {
-        element.textContent += text[i];
-        await sleep(speed + Math.random() * 20);
+    async function type(node, text) {
+      for (const ch of text) {
+        node.textContent += ch;
+        await wait(18 + Math.random() * 22);
       }
     }
 
-    async function runTerminalAnimation() {
-      if (isAnimating) return;
-      isAnimating = true;
-      terminal.innerHTML = '';
-
-      for (const cmd of terminalCommands) {
-        if (cmd.type === 'pause') {
-          await sleep(cmd.duration);
-          continue;
-        }
-
-        const line = document.createElement('div');
-        line.className = 'terminal-line';
-
-        if (cmd.type === 'command') {
-          line.innerHTML = '<span class="prompt">❯</span> <span class="command"></span>';
-          terminal.appendChild(line);
-          line.classList.add('visible');
-          await typeText(line.querySelector('.command'), cmd.text, 25);
-          await sleep(200);
-        } else if (cmd.type === 'output') {
-          line.className = 'terminal-line output';
-          line.innerHTML = cmd.text;
-          terminal.appendChild(line);
-          await sleep(50);
-          line.classList.add('visible');
-        } else if (cmd.type === 'cursor') {
-          line.innerHTML = '<span class="prompt">❯</span> <span class="cursor"></span>';
-          terminal.appendChild(line);
-          line.classList.add('visible');
+    async function animate() {
+      if (running) return;
+      running = true;
+      el.innerHTML = '';
+      for (const c of cmds) {
+        if (c.t === 'wait') { await wait(c.d); continue; }
+        const ln = document.createElement('div');
+        ln.className = 'terminal-line';
+        if (c.t === 'cmd') {
+          ln.innerHTML = '<span class="prompt">&#x276F;</span> <span class="command"></span>';
+          el.appendChild(ln);
+          ln.classList.add('visible');
+          await type(ln.querySelector('.command'), c.s);
+          await wait(150);
+        } else if (c.t === 'out') {
+          ln.className = 'terminal-line output';
+          ln.innerHTML = c.s;
+          el.appendChild(ln);
+          await wait(40);
+          ln.classList.add('visible');
+        } else if (c.t === 'end') {
+          ln.innerHTML = '<span class="prompt">&#x276F;</span> <span class="cursor"></span>';
+          el.appendChild(ln);
+          ln.classList.add('visible');
         }
       }
-      isAnimating = false;
+      running = false;
     }
 
-    // Start animation when terminal is in view
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          runTerminalAnimation();
-          observer.unobserve(entry.target);
-        }
+    // Intersection observer for terminal
+    new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animate(); }
       });
-    }, { threshold: 0.5 });
+    }, { threshold: 0.4 }).observe(document.querySelector('.terminal'));
 
-    observer.observe(document.querySelector('.terminal'));
+    // Replay on click
+    document.querySelector('.terminal').addEventListener('click', animate);
 
-    // Copy button functionality
+    // Scroll reveal
+    const sr = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.sr').forEach(s => sr.observe(s));
+
+    // Copy buttons (install)
     document.querySelectorAll('.copy-btn').forEach(btn => {
       btn.addEventListener('click', async () => {
-        const text = btn.dataset.copy;
         try {
-          await navigator.clipboard.writeText(text);
-          btn.textContent = 'Copied!';
+          await navigator.clipboard.writeText(btn.dataset.copy);
+          btn.textContent = 'Copied';
           btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = 'Copy';
-            btn.classList.remove('copied');
-          }, 2000);
-        } catch (err) {
-          console.error('Failed to copy:', err);
-        }
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+        } catch {}
       });
     });
 
-    // Replay terminal on click
-    document.querySelector('.terminal').addEventListener('click', () => {
-      runTerminalAnimation();
-    });
-
-    // Scroll animations for sections
-    const fadeInSections = document.querySelectorAll('.fade-in-section');
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
-      });
-    }, { threshold: 0.1 });
-
-    fadeInSections.forEach(section => sectionObserver.observe(section));
-
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    // Copy buttons (examples)
+    document.querySelectorAll('.example-row').forEach(row => {
+      row.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('example-row-copy')) return;
+        row.querySelector('.example-row-copy').click();
       });
     });
 
-    // Example copy buttons
-    document.querySelectorAll('.example-copy').forEach(btn => {
+    document.querySelectorAll('.example-row-copy').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const cmd = btn.closest('.example-cmd').dataset.cmd;
         try {
-          await navigator.clipboard.writeText(cmd);
-          btn.textContent = 'copied!';
+          await navigator.clipboard.writeText(btn.closest('.example-row').dataset.cmd);
+          btn.textContent = 'copied';
           btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = 'copy';
-            btn.classList.remove('copied');
-          }, 1500);
-        } catch (err) {
-          console.error('Failed to copy:', err);
-        }
+          setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+        } catch {}
       });
     });
 
-    // Click on example-cmd to copy
-    document.querySelectorAll('.example-cmd').forEach(cmd => {
-      cmd.addEventListener('click', (e) => {
-        if (e.target.classList.contains('example-copy')) return;
-        const btn = cmd.querySelector('.example-copy');
-        btn.click();
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
       });
     });
   </script>
