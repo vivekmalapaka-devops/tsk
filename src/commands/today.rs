@@ -15,6 +15,9 @@ pub fn run(store: &Store, config: &DisplayConfig) {
     let mut high_priority_no_deadline: Vec<&Todo> = Vec::new();
 
     for todo in store.open_todos() {
+        if todo.hidden {
+            continue;
+        }
         let is_high_priority = todo.priority == Some(1);
         let is_overdue = todo.is_overdue();
         let is_today = todo.deadline.map(is_due_today).unwrap_or(false);

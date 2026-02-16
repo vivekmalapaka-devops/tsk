@@ -18,6 +18,7 @@ pub fn run(
     filter: Filter,
     tag_filters: &[String],
     project_filter: Option<&str>,
+    show_hidden: bool,
 ) {
     let mut todos: Vec<&Todo> = match filter {
         Filter::Open => store.open_todos().collect(),
@@ -28,6 +29,11 @@ pub fn run(
             .collect(),
         Filter::Overdue => store.open_todos().filter(|t| t.is_overdue()).collect(),
     };
+
+    // Filter hidden tasks unless show_hidden is set
+    if !show_hidden {
+        todos.retain(|t| !t.hidden);
+    }
 
     // Apply tag filters
     if !tag_filters.is_empty() {

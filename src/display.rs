@@ -211,6 +211,24 @@ pub fn print_undo_success(task_count: usize, config: &DisplayConfig) {
     }
 }
 
+pub fn print_todo_hidden(todo: &Todo, config: &DisplayConfig) {
+    let msg = format!("Hidden #{}: {}", todo.id, todo.text);
+    if config.use_color {
+        println!("{}", msg.yellow());
+    } else {
+        println!("{}", msg);
+    }
+}
+
+pub fn print_todo_unhidden(todo: &Todo, config: &DisplayConfig) {
+    let msg = format!("Unhidden #{}: {}", todo.id, todo.text);
+    if config.use_color {
+        println!("{}", msg.green());
+    } else {
+        println!("{}", msg);
+    }
+}
+
 pub fn print_error(msg: &str) {
     eprintln!("{}: {}", "Error".red().bold(), msg);
 }

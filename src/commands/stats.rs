@@ -11,6 +11,7 @@ pub fn run(store: &Store, config: &DisplayConfig) {
 
     let open_count = store.open_todos().count();
     let completed_count = store.completed_todos().count();
+    let hidden_count = store.open_todos().filter(|t| t.hidden).count();
 
     let done_today = store
         .completed_todos()
@@ -58,6 +59,7 @@ pub fn run(store: &Store, config: &DisplayConfig) {
     if config.use_color {
         println!("{:<14} {}", "Open:".bold(), open_count);
         println!("{:<14} {}", "Completed:".bold(), completed_count);
+        println!("{:<14} {}", "Hidden:".bold(), hidden_count);
         println!("{:<14} {}", "Done today:".bold(), done_today);
         println!("{:<14} {}", "Done week:".bold(), done_week);
         if let Some(o) = oldest {
@@ -69,6 +71,7 @@ pub fn run(store: &Store, config: &DisplayConfig) {
     } else {
         println!("{:<14} {}", "Open:", open_count);
         println!("{:<14} {}", "Completed:", completed_count);
+        println!("{:<14} {}", "Hidden:", hidden_count);
         println!("{:<14} {}", "Done today:", done_today);
         println!("{:<14} {}", "Done week:", done_week);
         if let Some(o) = oldest {
