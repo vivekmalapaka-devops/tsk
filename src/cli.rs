@@ -26,6 +26,10 @@ pub struct Cli {
     /// Filter by project
     #[arg(short = 'P', long = "project", global = true)]
     pub project: Option<String>,
+
+    /// Show hidden tasks
+    #[arg(long, global = true)]
+    pub show_hidden: bool,
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
@@ -131,6 +135,19 @@ pub enum Command {
     /// List all projects
     #[command(name = "projects")]
     Projects,
+
+    /// Hide task(s) from default views
+    #[command(alias = "h")]
+    Hide {
+        /// Task ID(s) to hide
+        ids: Vec<u32>,
+    },
+
+    /// Unhide task(s)
+    Unhide {
+        /// Task ID(s) to unhide
+        ids: Vec<u32>,
+    },
 }
 
 impl Cli {

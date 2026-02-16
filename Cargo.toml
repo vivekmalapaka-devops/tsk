@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2021"
 description = "A fast, minimal terminal todo manager"
 license = "MIT"
-authors = ["Your Name"]
+authors = ["Vivek Malapaka"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

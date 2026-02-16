@@ -30,11 +30,11 @@ fn main() {
         }
 
         Some(Command::Ls) | None => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::Open, &cli.tags, cli.project.as_deref());
+            commands::list::run(&store, &config, cli.sort_by, Filter::Open, &cli.tags, cli.project.as_deref(), cli.show_hidden);
         }
 
         Some(Command::All) => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::All, &cli.tags, cli.project.as_deref());
+            commands::list::run(&store, &config, cli.sort_by, Filter::All, &cli.tags, cli.project.as_deref(), true);
         }
 
         Some(Command::Today) => {
@@ -42,11 +42,11 @@ fn main() {
         }
 
         Some(Command::Week) => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::Week, &cli.tags, cli.project.as_deref());
+            commands::list::run(&store, &config, cli.sort_by, Filter::Week, &cli.tags, cli.project.as_deref(), cli.show_hidden);
         }
 
         Some(Command::Overdue) => {
-            commands::list::run(&store, &config, cli.sort_by, Filter::Overdue, &cli.tags, cli.project.as_deref());
+            commands::list::run(&store, &config, cli.sort_by, Filter::Overdue, &cli.tags, cli.project.as_deref(), cli.show_hidden);
         }
 
         Some(Command::Done { ids }) => {
@@ -87,6 +87,14 @@ fn main() {
 
         Some(Command::Stats) => {
             commands::stats::run(&store, &config);
+        }
+
+        Some(Command::Hide { ids }) => {
+            commands::hide::run(ids, &mut store, &config);
+        }
+
+        Some(Command::Unhide { ids }) => {
+            commands::unhide::run(ids, &mut store, &config);
         }
     }
 }

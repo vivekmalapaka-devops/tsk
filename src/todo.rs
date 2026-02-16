@@ -12,6 +12,8 @@ pub struct Todo {
     pub project: Option<String>,
     pub created_at: DateTime<Local>,
     pub completed_at: Option<DateTime<Local>>,
+    #[serde(default)]
+    pub hidden: bool,
 }
 
 impl Todo {
@@ -26,6 +28,7 @@ impl Todo {
             project: None,
             created_at: Local::now(),
             completed_at: None,
+            hidden: false,
         }
     }
 
