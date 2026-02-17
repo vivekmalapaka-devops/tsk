@@ -1,4 +1,4 @@
-# tsk
+# >tsk
 
 A fast, minimal terminal task manager.
 
